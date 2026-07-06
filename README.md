@@ -49,6 +49,25 @@ go run .
 
 ## Docker 部署
 
+镜像地址：
+
+```text
+ghcr.io/huey1in/kiroclaim:latest
+```
+
+一行部署：
+
+```bash
+docker run -d --name kiroclaim --restart unless-stopped -p 9527:9527 -e GIN_MODE=release -e DB_TYPE=sqlite -e DB_PATH=/app/data/app.db -v kiroclaim-data:/app/data -v kiroclaim-logs:/app/logs ghcr.io/huey1in/kiroclaim:latest
+```
+
+启动后访问：
+
+- 初始化页面：`http://服务器IP:9527/setup`
+- 兑换中心：`http://服务器IP:9527/redeem`
+
+如果使用 Docker Compose：
+
 ```bash
 cp .env.example .env
 docker compose pull
@@ -68,7 +87,7 @@ DB_TYPE=mysql
 DB_DSN=kiroclaim:change_me@tcp(mysql-host:3306)/kiroclaim?charset=utf8mb4&parseTime=True&loc=Local
 ```
 
-默认镜像：
+手动拉取最新镜像：
 
 ```bash
 docker pull ghcr.io/huey1in/kiroclaim:latest
