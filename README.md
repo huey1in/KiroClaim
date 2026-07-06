@@ -47,11 +47,12 @@ go run .
 - 管理后台：`http://127.0.0.1:9527/`
 - 兑换中心：`http://127.0.0.1:9527/redeem`
 
-## Docker Compose 部署
+## Docker 部署
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 默认运行路径：
@@ -66,6 +67,29 @@ docker compose up -d --build
 DB_TYPE=mysql
 DB_DSN=kiroclaim:change_me@tcp(mysql-host:3306)/kiroclaim?charset=utf8mb4&parseTime=True&loc=Local
 ```
+
+默认镜像：
+
+```bash
+docker pull ghcr.io/huey1in/kiroclaim:latest
+```
+
+发布版本会同时生成对应 tag 镜像，例如：
+
+```bash
+docker pull ghcr.io/huey1in/kiroclaim:v0.1.0
+```
+
+## 二进制资源包
+
+每个 `v*` 版本 tag 会自动发布 GitHub Release，并附带：
+
+- `KiroClaim_<version>_linux_amd64.tar.gz`
+- `KiroClaim_<version>_linux_arm64.tar.gz`
+- `KiroClaim_<version>_windows_amd64.zip`
+- `KiroClaim_<version>_docker.zip`
+
+二进制包内包含运行所需的 `static` 静态资源和 `.env.example`。
 
 ## 配置说明
 

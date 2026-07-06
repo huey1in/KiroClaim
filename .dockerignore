@@ -1,5 +1,7 @@
 .git
 .agents
+dist
+release
 .env
 .env.local
 .env.*.local
@@ -10,6 +12,8 @@ logs
 *.db-journal
 *.db-wal
 *.db-shm
+*.tar.gz
+*.zip
 server.out.log
 server.err.log
 kiroclaim

@@ -15,6 +15,10 @@ server.out.log
 server.err.log
 
 # Build outputs
+dist/
+release/
+*.tar.gz
+*.zip
 kiroclaim
 kiroclaim.exe
 *.exe

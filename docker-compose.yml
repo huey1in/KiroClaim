@@ -2,10 +2,7 @@ name: kiroclaim
 
 services:
   kiroclaim:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: kiroclaim:latest
+    image: ghcr.io/huey1in/kiroclaim:latest
     container_name: kiroclaim
     restart: unless-stopped
     ports:
