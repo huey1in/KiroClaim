@@ -53,6 +53,7 @@ function switchTab(name, el) {
 // 初始化后台（登录成功后调用）
 function initApp() {
   var savedTab = localStorage.getItem('currentTab') || 'dashboard';
+  if (typeof loadVersionBadge === 'function') loadVersionBadge(false);
 
   var targetNav = document.querySelector('.nav-item[data-tab="' + savedTab + '"]');
   if (targetNav) {

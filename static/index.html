@@ -36,6 +36,11 @@
   <div class="app-container" id="appContainer" style="display:none">
     <!-- 侧边栏 -->
     <aside class="sidebar" id="sidebar">
+      <button type="button" class="sidebar-version" id="sidebarVersion" onclick="showVersionPanel()" title="查看版本">
+        <span class="version-dot" aria-hidden="true"></span>
+        <span class="version-label" id="sidebarVersionText">检测中</span>
+        <span class="version-new" id="sidebarVersionNew">NEW</span>
+      </button>
       <div class="sidebar-tools">
         <button type="button" class="sidebar-collapse-toggle" id="sidebarCollapseToggle" onclick="toggleSidebarCollapse()" aria-label="收起侧边栏" title="收起侧边栏">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
@@ -443,6 +448,13 @@
                   </div>
                   <input type="checkbox" class="k-checkbox" id="settingLogCompress">
                 </div>
+                <div class="settings-toggle-card">
+                  <div>
+                    <strong>系统自动更新</strong>
+                    <small>检测到新 Docker 版本后自动拉取并重建容器</small>
+                  </div>
+                  <input type="checkbox" class="k-checkbox" id="settingAutoUpdateEnabled">
+                </div>
               </div>
             </div>
             <div id="settingsResult" style="margin-top:18px"></div>
@@ -526,6 +538,7 @@
   <script src="/static/js/export.js"></script>
   <script src="/static/js/logs.js"></script>
   <script src="/static/js/settings.js"></script>
+  <script src="/static/js/version.js"></script>
   <script src="/static/js/main.js"></script>
 </body>
 </html>

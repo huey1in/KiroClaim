@@ -36,6 +36,7 @@ type AppSettings struct {
 	LogMaxBackups               int
 	LogMaxAgeDays               int
 	LogCompress                 bool
+	AutoUpdateEnabled           bool
 }
 
 type storedRuntimeSettings struct {
@@ -57,6 +58,7 @@ type storedRuntimeSettings struct {
 	LogMaxBackups               *int    `json:"logMaxBackups,omitempty"`
 	LogMaxAgeDays               *int    `json:"logMaxAgeDays,omitempty"`
 	LogCompress                 *bool   `json:"logCompress,omitempty"`
+	AutoUpdateEnabled           *bool   `json:"autoUpdateEnabled,omitempty"`
 }
 
 var (
@@ -85,6 +87,7 @@ func LoadSettingsFromEnv() {
 		LogMaxBackups:               logging.MaxBackups,
 		LogMaxAgeDays:               logging.MaxAgeDays,
 		LogCompress:                 logging.Compress,
+		AutoUpdateEnabled:           envBool("AUTO_UPDATE_ENABLED", false),
 	}
 	applyStoredRuntimeSettings(&s)
 	normalizeSettings(&s)
@@ -167,6 +170,9 @@ func mergeStoredRuntimeSettings(s *AppSettings, stored storedRuntimeSettings) {
 	if stored.LogCompress != nil {
 		s.LogCompress = *stored.LogCompress
 	}
+	if stored.AutoUpdateEnabled != nil {
+		s.AutoUpdateEnabled = *stored.AutoUpdateEnabled
+	}
 }
 
 func normalizeSettings(s *AppSettings) {
@@ -230,6 +236,7 @@ func persistRuntimeSettings(s AppSettings) error {
 		LogMaxBackups:               intPtr(s.LogMaxBackups),
 		LogMaxAgeDays:               intPtr(s.LogMaxAgeDays),
 		LogCompress:                 boolPtr(s.LogCompress),
+		AutoUpdateEnabled:           boolPtr(s.AutoUpdateEnabled),
 	}
 	b, err := json.Marshal(payload)
 	if err != nil {
@@ -315,6 +322,7 @@ func AdminSettings(c *gin.Context) {
 			"logMaxBackups":               s.LogMaxBackups,
 			"logMaxAgeDays":               s.LogMaxAgeDays,
 			"logCompress":                 s.LogCompress,
+			"autoUpdateEnabled":           s.AutoUpdateEnabled,
 		},
 	})
 }
@@ -338,6 +346,7 @@ func UpdateAdminSettings(c *gin.Context) {
 		LogMaxBackups               int    `json:"logMaxBackups"`
 		LogMaxAgeDays               int    `json:"logMaxAgeDays"`
 		LogCompress                 bool   `json:"logCompress"`
+		AutoUpdateEnabled           bool   `json:"autoUpdateEnabled"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "请求格式错误"})
@@ -407,6 +416,7 @@ func UpdateAdminSettings(c *gin.Context) {
 	s.LogMaxBackups = req.LogMaxBackups
 	s.LogMaxAgeDays = req.LogMaxAgeDays
 	s.LogCompress = req.LogCompress
+	s.AutoUpdateEnabled = req.AutoUpdateEnabled
 	normalizeSettings(&s)
 
 	if s.CaptchaEnabled {

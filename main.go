@@ -140,7 +140,11 @@ func main() {
 		admin.GET("/settings", handler.AdminSettings)
 		admin.POST("/settings", handler.UpdateAdminSettings)
 		admin.POST("/settings/reload", handler.ReloadSettingsHandler)
+		admin.GET("/version", handler.AdminVersion)
+		admin.POST("/version/update", handler.AdminVersionUpdate)
 	}
+
+	handler.StartAutoUpdateScheduler()
 
 	go func() {
 		hup := make(chan os.Signal, 1)
