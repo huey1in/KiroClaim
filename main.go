@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -72,6 +73,14 @@ func main() {
 
 	r := gin.Default()
 	r.Use(middleware.RequestIDMiddleware())
+	r.Use(func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if path == "/" || path == "/setup" || path == "/redeem" ||
+			strings.HasPrefix(path, "/static/") || path == "/favicon.ico" {
+			c.Header("Cache-Control", "no-cache")
+		}
+		c.Next()
+	})
 
 	r.Static("/static", "./static")
 	r.StaticFile("/favicon.ico", "./static/favicon.ico")

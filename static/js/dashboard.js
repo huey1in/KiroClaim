@@ -3,6 +3,8 @@
 // 自动刷新定时器
 let dashboardRefreshTimer = null;
 const DASHBOARD_REFRESH_INTERVAL = 30000; // 30秒
+let recentActivityPage = 1;
+const RECENT_ACTIVITY_PAGE_SIZE = 10;
 
 // 启动自动刷新
 function startDashboardAutoRefresh() {
@@ -176,14 +178,17 @@ var recentActionLabels = {
   export: '导出'
 };
 
-async function loadRecentActivity() {
+async function loadRecentActivity(page) {
   var tbody = document.getElementById('recentActivityBody');
   if (!tbody) return;
+  if (!page) page = recentActivityPage;
+  recentActivityPage = page;
 
-  // 获取最近 10 条操作日志
-  var r = await api('GET', '/admin/oplogs?page=1&size=10');
+  var r = await api('GET', '/admin/oplogs?page=' + page + '&size=' + RECENT_ACTIVITY_PAGE_SIZE);
   if (r.code !== 0 || !r.data.list || !r.data.list.length) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;padding:24px;font-size:13px">暂无活动记录</td></tr>';
+    var emptyPagination = document.getElementById('recentActivityPagination');
+    if (emptyPagination) emptyPagination.innerHTML = '';
     return;
   }
 
@@ -196,4 +201,6 @@ async function loadRecentActivity() {
       '<td class="recent-time" data-label="时间" style="font-size:12px;color:#999;white-space:nowrap">' + timeStr + '</td>' +
     '</tr>';
   }).join('');
+
+  renderPagination('recentActivityPagination', r.data.total || 0, r.data.size || RECENT_ACTIVITY_PAGE_SIZE, r.data.page || page, loadRecentActivity);
 }

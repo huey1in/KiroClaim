@@ -36,11 +36,11 @@
   <div class="app-container" id="appContainer" style="display:none">
     <!-- 侧边栏 -->
     <aside class="sidebar" id="sidebar">
-      <button type="button" class="sidebar-version" id="sidebarVersion" onclick="showVersionPanel()" title="查看版本">
+      <div role="button" tabindex="0" class="sidebar-version" id="sidebarVersion" onclick="showVersionPanel()" onkeydown="handleVersionKeydown(event)" title="查看版本">
         <span class="version-dot" aria-hidden="true"></span>
         <span class="version-label" id="sidebarVersionText">检测中</span>
-        <span class="version-new" id="sidebarVersionNew">NEW</span>
-      </button>
+        <span class="version-new" id="sidebarVersionNew" hidden>NEW</span>
+      </div>
       <div class="sidebar-tools">
         <button type="button" class="sidebar-collapse-toggle" id="sidebarCollapseToggle" onclick="toggleSidebarCollapse()" aria-label="收起侧边栏" title="收起侧边栏">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
@@ -123,6 +123,7 @@
                 <tr><td colspan="3" style="text-align:center;color:#999;padding:24px">加载中...</td></tr>
               </tbody>
             </table>
+            <div class="pagination recent-pagination" id="recentActivityPagination"></div>
           </div>
         </div>
       </div>
