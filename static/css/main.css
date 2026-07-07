@@ -67,6 +67,8 @@
 
 html, body {
     height: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 body {
@@ -2208,4 +2210,12 @@ textarea.k-input::-webkit-scrollbar-corner {
 @keyframes slideOut {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(20px); }
+}
+
+@media (max-width: 768px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
 }
