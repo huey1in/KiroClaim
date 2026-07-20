@@ -176,6 +176,10 @@ func filterAccountSubscriptionQuery(q *gorm.DB, subscription string) *gorm.DB {
 	return q.Where("subscription = ?", subscription)
 }
 
+func dispatchHealthCheckEnabled() bool {
+	return GetCurrentSettings().DispatchHealthCheckEnabled
+}
+
 func popAccount(excludeID uint, subscription string) (*model.Account, error) {
 	timer := prometheus.NewTimer(utils.DispatchDuration)
 	defer timer.ObserveDuration()
@@ -193,6 +197,15 @@ func popAccount(excludeID uint, subscription string) (*model.Account, error) {
 		return nil, err
 	}
 	if len(candidates) == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	if !dispatchHealthCheckEnabled() {
+		for i := range candidates {
+			if isDispatchable(&candidates[i], subscription) {
+				account := candidates[i]
+				return &account, nil
+			}
+		}
 		return nil, gorm.ErrRecordNotFound
 	}
 
@@ -333,6 +346,20 @@ func popMultipleAccounts(n int, subscription string) ([]*model.Account, error) {
 	var candidates []model.Account
 	if err := q.Order("created_at ASC, id ASC").Limit(n * 4).Find(&candidates).Error; err != nil {
 		return nil, err
+	}
+	if !dispatchHealthCheckEnabled() {
+		accounts := make([]*model.Account, 0, n)
+		for i := range candidates {
+			if !isDispatchable(&candidates[i], subscription) {
+				continue
+			}
+			account := candidates[i]
+			accounts = append(accounts, &account)
+			if len(accounts) == n {
+				return accounts, nil
+			}
+		}
+		return nil, gorm.ErrRecordNotFound
 	}
 
 	accounts := make([]*model.Account, 0, n)

@@ -72,6 +72,9 @@ func Init(dsn string) {
 		DB.Exec("PRAGMA busy_timeout=5000")
 		log.Println("SQLite 已开启 WAL 模式 (journal_mode=WAL, synchronous=NORMAL, busy_timeout=5s)")
 	}
+	if err := dropDeprecatedCommerceColumns(DB); err != nil {
+		log.Fatalf("清理废弃商城字段失败: %v", err)
+	}
 
 	err = DB.AutoMigrate(
 		&model.Account{},
@@ -81,15 +84,55 @@ func Init(dsn string) {
 		&model.OpLog{},
 		&model.CardLog{},
 		&model.User{},
+		&model.CommerceProduct{},
+		&model.CommerceProductCard{},
+		&model.CommerceOrder{},
+		&model.CommercePaymentProof{},
+		&model.CommercePaymentEvent{},
+		&model.CommerceOrderLog{},
 	)
 	if err != nil {
 		log.Fatalf("数据库迁移失败: %v", err)
+	}
+
+	if err := cleanupEmptyCommerceProducts(DB); err != nil {
+		log.Fatalf("cleanup empty commerce products failed: %v", err)
 	}
 
 	loadCryptoKeyFromKV()
 	migrateEncryptedCredentials()
 
 	log.Println("数据库初始化完成")
+}
+
+func cleanupEmptyCommerceProducts(db *gorm.DB) error {
+	return db.Exec("DELETE FROM commerce_products WHERE active = ? AND id NOT IN (SELECT DISTINCT product_id FROM commerce_product_cards)", false).Error
+}
+
+func dropDeprecatedCommerceColumns(db *gorm.DB) error {
+	if db.Migrator().HasTable(&model.CommerceProduct{}) && db.Migrator().HasColumn(&model.CommerceProduct{}, "inventory_mode") {
+		if err := db.Migrator().DropColumn(&model.CommerceProduct{}, "inventory_mode"); err != nil {
+			return err
+		}
+	}
+	if db.Migrator().HasTable(&model.CommerceOrder{}) && db.Migrator().HasColumn(&model.CommerceOrder{}, "inventory_mode") {
+		if err := db.Migrator().DropColumn(&model.CommerceOrder{}, "inventory_mode"); err != nil {
+			return err
+		}
+	}
+	return dropDeprecatedCommercePriceTable(db)
+}
+
+func dropDeprecatedCommercePriceTable(db *gorm.DB) error {
+	if db.Migrator().HasTable("commerce_product_prices") {
+		if err := db.Migrator().DropTable("commerce_product_prices"); err != nil {
+			return err
+		}
+	}
+	if db.Migrator().HasTable("commerce_payment_channels") {
+		return db.Migrator().DropTable("commerce_payment_channels")
+	}
+	return nil
 }
 
 func loadCryptoKeyFromKV() {

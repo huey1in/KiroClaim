@@ -20,6 +20,7 @@ import (
 
 type AppSettings struct {
 	MaxUpstreamCheckConcurrency int
+	DispatchHealthCheckEnabled  bool
 	RequestTimeoutSeconds       int
 	RateLimitEnabled            bool
 	RateLimitPerMin             int
@@ -42,6 +43,7 @@ type AppSettings struct {
 type storedRuntimeSettings struct {
 	MaxUpstreamCheckConcurrency *int    `json:"maxUpstreamCheckConcurrency,omitempty"`
 	MaxImportConcurrency        *int    `json:"maxImportConcurrency,omitempty"`
+	DispatchHealthCheckEnabled  *bool   `json:"dispatchHealthCheckEnabled,omitempty"`
 	RequestTimeoutSeconds       *int    `json:"requestTimeoutSeconds,omitempty"`
 	RateLimitEnabled            *bool   `json:"rateLimitEnabled,omitempty"`
 	RateLimitPerMin             *int    `json:"rateLimitPerMin,omitempty"`
@@ -71,6 +73,7 @@ func LoadSettingsFromEnv() {
 	logging := utils.DefaultLoggingConfigFromEnv()
 	s := AppSettings{
 		MaxUpstreamCheckConcurrency: 6,
+		DispatchHealthCheckEnabled:  envBool("DISPATCH_HEALTH_CHECK_ENABLED", true),
 		RequestTimeoutSeconds:       45,
 		RateLimitEnabled:            envBool("RATE_LIMIT_ENABLED", true),
 		RateLimitPerMin:             envInt("RATE_LIMIT_PER_MIN", 30),
@@ -121,6 +124,9 @@ func mergeStoredRuntimeSettings(s *AppSettings, stored storedRuntimeSettings) {
 		s.MaxUpstreamCheckConcurrency = *stored.MaxUpstreamCheckConcurrency
 	} else if stored.MaxImportConcurrency != nil {
 		s.MaxUpstreamCheckConcurrency = *stored.MaxImportConcurrency
+	}
+	if stored.DispatchHealthCheckEnabled != nil {
+		s.DispatchHealthCheckEnabled = *stored.DispatchHealthCheckEnabled
 	}
 	if stored.RequestTimeoutSeconds != nil {
 		s.RequestTimeoutSeconds = *stored.RequestTimeoutSeconds
@@ -220,6 +226,7 @@ func stringPtr(v string) *string { return &v }
 func persistRuntimeSettings(s AppSettings) error {
 	payload := storedRuntimeSettings{
 		MaxUpstreamCheckConcurrency: intPtr(s.MaxUpstreamCheckConcurrency),
+		DispatchHealthCheckEnabled:  boolPtr(s.DispatchHealthCheckEnabled),
 		RequestTimeoutSeconds:       intPtr(s.RequestTimeoutSeconds),
 		RateLimitEnabled:            boolPtr(s.RateLimitEnabled),
 		RateLimitPerMin:             intPtr(s.RateLimitPerMin),
@@ -306,6 +313,7 @@ func AdminSettings(c *gin.Context) {
 		"code": 0,
 		"data": gin.H{
 			"maxUpstreamCheckConcurrency": s.MaxUpstreamCheckConcurrency,
+			"dispatchHealthCheckEnabled":  s.DispatchHealthCheckEnabled,
 			"requestTimeoutSeconds":       s.RequestTimeoutSeconds,
 			"rateLimitEnabled":            s.RateLimitEnabled,
 			"rateLimitPerMin":             s.RateLimitPerMin,
@@ -330,6 +338,7 @@ func AdminSettings(c *gin.Context) {
 func UpdateAdminSettings(c *gin.Context) {
 	var req struct {
 		MaxUpstreamCheckConcurrency int    `json:"maxUpstreamCheckConcurrency"`
+		DispatchHealthCheckEnabled  bool   `json:"dispatchHealthCheckEnabled"`
 		RequestTimeoutSeconds       int    `json:"requestTimeoutSeconds"`
 		RateLimitEnabled            bool   `json:"rateLimitEnabled"`
 		RateLimitPerMin             int    `json:"rateLimitPerMin"`
@@ -398,6 +407,7 @@ func UpdateAdminSettings(c *gin.Context) {
 	settingsMu.RUnlock()
 
 	s.MaxUpstreamCheckConcurrency = req.MaxUpstreamCheckConcurrency
+	s.DispatchHealthCheckEnabled = req.DispatchHealthCheckEnabled
 	s.RequestTimeoutSeconds = req.RequestTimeoutSeconds
 	s.RateLimitEnabled = req.RateLimitEnabled
 	s.RateLimitPerMin = req.RateLimitPerMin

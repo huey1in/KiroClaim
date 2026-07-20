@@ -1,6 +1,6 @@
 package utils
 
-var AppVersion = "v0.1.1-dev"
+var AppVersion = "v0.2.1-beta"
 
 const (
 	GitHubRepo  = "huey1in/KiroClaim"

@@ -76,7 +76,7 @@ function renderVersionModal(data) {
     '<div class="modal-content" style="max-width:560px">' +
       '<div class="modal-header">' +
         '<span class="modal-title">系统版本</span>' +
-        '<span class="modal-close" onclick="closeVersionModal()">&times;</span>' +
+        '<button type="button" class="modal-close" aria-label="关闭" title="关闭" onclick="closeVersionModal()">&times;</button>' +
       '</div>' +
       '<div class="modal-body" id="versionModalBody">' +
         buildVersionModalBody(data) +

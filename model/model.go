@@ -78,6 +78,7 @@ const (
 	KVJWTSecret       = "runtime.jwt_secret"
 	KVEncryptionKey   = "runtime.encryption_key"
 	KVRuntimeSettings = "settings.runtime"
+	KVCommerceSettings = "settings.commerce"
 )
 
 type Card struct {

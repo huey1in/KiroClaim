@@ -341,7 +341,7 @@ async function doSetup() {
 
     if (result.code === 0 && result.data && result.data.token) {
       localStorage.setItem('adminToken', result.data.token);
-      location.replace('/');
+      location.replace('/admin');
       return;
     }
     if (result.data && Array.isArray(result.data.checks)) {
@@ -360,7 +360,7 @@ async function doSetup() {
 (async function initSetupPage() {
   var status = await setupStatus();
   if (status && status.code === 0 && status.data && status.data.initialized) {
-    location.replace('/');
+    location.replace('/admin');
     return;
   }
 

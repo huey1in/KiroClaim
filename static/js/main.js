@@ -33,7 +33,19 @@ function switchTab(name, el) {
   if (name === 'assigned') loadAssignedAccounts(1);
   if (name === 'cards') loadCards(1);
   if (name === 'logs') loadLogs(1);
-  if (name === 'settings') loadSettings();
+  if (name.indexOf('commerce-') === 0 && typeof loadCommerceAdmin === 'function') {
+    loadCommerceAdmin().then(function() {
+      if (name === 'commerce-orders' && typeof loadOrders === 'function') loadOrders().catch(function(err) { console.error('commerce orders load failed', err); });
+      if (name === 'commerce-channels' && typeof loadChannels === 'function') loadChannels().catch(function(err) { console.error('commerce channels load failed', err); });
+      if (name === 'commerce-settings' && typeof loadCommerceSettings === 'function') loadCommerceSettings().catch(function(err) { console.error('commerce settings load failed', err); });
+    }).catch(function(err) { console.error('commerce admin load failed', err); });
+  }
+  if (name === 'settings') {
+    loadSettings();
+    if (typeof loadCommerceAdmin === 'function') {
+      loadCommerceAdmin().then(function() { if (typeof loadChannels === 'function') loadChannels().catch(function(err) { console.error('commerce channels load failed', err); }); if (typeof loadCommerceSettings === 'function') loadCommerceSettings().catch(function(err) { console.error('commerce settings load failed', err); }); var attempts=0; var initTimer=setInterval(function(){ attempts++; if((typeof initSettingsCategories === 'function' && initSettingsCategories()) || attempts>=20) clearInterval(initTimer); }, 100); }).catch(function(err) { console.error('commerce settings load failed', err); });
+    }
+  }
 
   setTimeout(function() {
     // 概览页不恢复滚动位置
@@ -66,7 +78,10 @@ function initApp() {
     if (savedTab === 'assigned') loadAssignedAccounts(1);
     if (savedTab === 'cards') loadCards(1);
     if (savedTab === 'logs') loadLogs(1);
-    if (savedTab === 'settings') loadSettings();
+    if (savedTab === 'settings') {
+      loadSettings();
+      if (typeof loadCommerceAdmin === 'function') loadCommerceAdmin().then(function() { if (typeof loadChannels === 'function') loadChannels().catch(function(err) { console.error('commerce channels load failed', err); }); if (typeof loadCommerceSettings === 'function') loadCommerceSettings().catch(function(err) { console.error('commerce settings load failed', err); }); var attempts=0; var initTimer=setInterval(function(){ attempts++; if((typeof initSettingsCategories === 'function' && initSettingsCategories()) || attempts>=20) clearInterval(initTimer); }, 100); }).catch(function(err) { console.error('commerce settings load failed', err); });
+    }
 
     // 概览页不恢复滚动位置（内容动态加载，恢复会跳到底部）
     if (savedTab !== 'dashboard') {

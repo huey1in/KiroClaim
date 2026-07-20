@@ -8,7 +8,7 @@
   <link rel="alternate icon" href="/static/favicon.ico">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/site.webmanifest">
-  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=0.2.1-beta">
   <link rel="stylesheet" href="/static/css/responsive.css">
 </head>
 <body>
@@ -52,6 +52,7 @@
         <div class="nav-item" data-tab="assigned" title="已分配" onclick="switchTab('assigned', this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M16 11l2 2 4-4"></path></svg></span><span class="nav-label">已分配</span></div>
         <div class="nav-item" data-tab="cards" title="卡密管理" onclick="switchTab('cards', this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg></span><span class="nav-label">卡密管理</span></div>
         <div class="nav-item" data-tab="logs" title="操作日志" onclick="switchTab('logs', this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg></span><span class="nav-label">操作日志</span></div>
+        <div class="nav-item" data-tab="commerce-orders" title="商城订单" onclick="openCommerceTab('commerce-orders', this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6z"></path><path d="M9 7h6M9 11h6M9 15h4"></path></svg></span><span class="nav-label">商城订单</span></div>
         <div class="nav-item" data-tab="settings" title="系统设置" onclick="switchTab('settings', this)"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5z"></path><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.08 1.65V21a2 2 0 0 1-4 0v-.09A1.8 1.8 0 0 0 8.8 19.26a1.8 1.8 0 0 0-1.98.36l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.8 1.8 0 0 0 4.35 15a1.8 1.8 0 0 0-1.65-1.08H2.6a2 2 0 0 1 0-4h.09A1.8 1.8 0 0 0 4.35 8a1.8 1.8 0 0 0-.36-1.98l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.8 1.8 0 0 0 8.8 3.55 1.8 1.8 0 0 0 9.88 1.9V1.8a2 2 0 0 1 4 0v.09a1.8 1.8 0 0 0 1.08 1.65 1.8 1.8 0 0 0 1.98-.36l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.8 1.8 0 0 0 19.4 8c.17.63.66 1.08 1.25 1.08h.75a2 2 0 0 1 0 4h-.75A1.8 1.8 0 0 0 19.4 15z"></path></svg></span><span class="nav-label">系统设置</span></div>
       </nav>
       <div class="sidebar-footer">
@@ -274,11 +275,28 @@
                   <span id="cardFilterText">全部状态</span>
                 </div>
                 <div class="k-dropdown-menu">
-                  <div class="k-dropdown-item selected" onclick="selectCardFilter('', '全部状态')">全部状态</div>
-                  <div class="k-dropdown-item" onclick="selectCardFilter('unused', '未使用')">未使用</div>
-                  <div class="k-dropdown-item" onclick="selectCardFilter('active', '使用中')">使用中</div>
+                  <div class="k-dropdown-item selected" onclick="selectCardFilter('', '全部状态', this)">全部状态</div>
+                  <div class="k-dropdown-item" onclick="selectCardFilter('unused', '未使用', this)">未使用</div>
+                  <div class="k-dropdown-item" onclick="selectCardFilter('active', '使用中', this)">使用中</div>
                 </div>
               </div>
+              <div class="k-dropdown" id="cardSubscriptionDropdown">
+                <div class="k-dropdown-trigger" onclick="toggleDropdown('cardSubscriptionDropdown')"><span id="cardSubscriptionText">全部订阅</span></div>
+                <div class="k-dropdown-menu"><div class="k-dropdown-item selected" onclick="selectCardSubscription('', '全部订阅', this)">全部订阅</div></div>
+              </div>
+              <div class="k-dropdown" id="cardShopStatusDropdown">
+                <div class="k-dropdown-trigger" onclick="toggleDropdown('cardShopStatusDropdown')"><span id="cardShopStatusText">全部商城状态</span></div>
+                <div class="k-dropdown-menu">
+                  <div class="k-dropdown-item selected" onclick="selectCardShopStatus('', '全部商城状态', this)">全部商城状态</div>
+                  <div class="k-dropdown-item" onclick="selectCardShopStatus('listed', '已上架', this)">已上架</div>
+                  <div class="k-dropdown-item" onclick="selectCardShopStatus('unlisted', '未上架', this)">未上架</div>
+                </div>
+              </div>
+              <div class="k-dropdown" id="cardShopGroupDropdown">
+                <div class="k-dropdown-trigger" onclick="toggleDropdown('cardShopGroupDropdown')"><span id="cardShopGroupText">全部售价档位</span></div>
+                <div class="k-dropdown-menu"><div class="k-dropdown-item selected" onclick="selectCardShopGroup('', '全部售价档位', this)">全部售价档位</div></div>
+              </div>
+              <button class="ui-btn ui-btn-danger ui-btn-sm" id="delistShopGroupBtn" style="display:none" onclick="delistSelectedShopGroup()">下架该售价并删除库存</button>
               <button class="ui-btn ui-btn-secondary ui-btn-sm" onclick="resetCardFilters()">重置</button>
             </div>
             <table>
@@ -289,6 +307,7 @@
                   <th>序列号</th>
                   <th>账号订阅</th>
                   <th>状态</th>
+                  <th>商城</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -340,15 +359,17 @@
         </div>
       </div>
 
+      <div class="tab-panel" id="tab-commerce-orders"><div id="commerceOrdersMount"><div class="k-card"><div class="k-card-body">正在加载商城订单...</div></div></div></div>
+
       <!-- 系统设置面板 -->
       <div class="tab-panel" id="tab-settings">
         <div class="k-card">
           <div class="k-card-header">
-            <span class="k-card-title">系统设置</span>
-            <button class="ui-btn ui-btn-primary ui-btn-sm" onclick="saveSettings()">保存配置</button>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="k-card-title">系统设置</span><span style="color:var(--text-muted)">/</span><button type="button" data-settings-category="base" onclick="switchSettingsCategory('base')" style="border:0;background:none;padding:0;color:var(--text-main);font:inherit;font-size:13px;cursor:pointer">基础与安全</button><span style="color:var(--text-muted)">/</span><button type="button" data-settings-category="logging" onclick="switchSettingsCategory('logging')" style="border:0;background:none;padding:0;color:var(--text-muted);font:inherit;font-size:13px;cursor:pointer">日志与更新</button><span style="color:var(--text-muted)">/</span><button type="button" data-settings-category="commerce" onclick="switchSettingsCategory('commerce')" style="border:0;background:none;padding:0;color:var(--text-muted);font:inherit;font-size:13px;cursor:pointer">商城与支付</button><span style="color:var(--text-muted)">/</span><button type="button" data-settings-category="delivery" onclick="switchSettingsCategory('delivery')" style="border:0;background:none;padding:0;color:var(--text-muted);font:inherit;font-size:13px;cursor:pointer">存储与通知</button></div>
+            <button id="settingsSaveBtn" class="ui-btn ui-btn-primary ui-btn-sm" onclick="saveCurrentSettingsCategory()">保存配置</button>
           </div>
-          <div class="k-card-body">
-            <div class="settings-grid">
+          <div class="k-card-body" id="unifiedSettingsBody">
+            <div class="settings-grid" id="runtimeSettingsSource">
               <div class="settings-column">
                 <div class="settings-toggle-card">
                   <div>
@@ -371,6 +392,13 @@
                   <label class="settings-label" for="settingMaxUpstreamCheckConcurrency">上游检查并发数</label>
                   <input class="k-input" type="number" id="settingMaxUpstreamCheckConcurrency" min="1" value="6">
                   <div class="settings-help">导入、兑换和后台刷新共用的检查并发池</div>
+                </div>
+                <div class="settings-toggle-card">
+                  <div>
+                    <strong>发货前上游健康检查</strong>
+                    <small>关闭后，发货仅依据数据库中的现有账号状态</small>
+                  </div>
+                  <input type="checkbox" class="k-checkbox" id="settingDispatchHealthCheckEnabled" checked>
                 </div>
                 <div class="settings-field">
                   <label class="settings-label" for="settingRequestTimeoutSeconds">上游请求超时（秒）</label>
@@ -461,6 +489,8 @@
             <div id="settingsResult" style="margin-top:18px"></div>
           </div>
         </div>
+        <div id="commerceChannelsMount"></div>
+        <div id="commerceSettingsMount"></div>
       </div>
 
     </div>
@@ -471,7 +501,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <span class="modal-title">导入账号</span>
-        <span class="modal-close" onclick="closeImportModal()">&times;</span>
+        <button type="button" class="modal-close" aria-label="关闭" title="关闭" onclick="closeImportModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div style="margin-bottom: 20px;">
@@ -493,7 +523,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <span class="modal-title">生成卡密</span>
-        <span class="modal-close" onclick="closeGenerateModal()">&times;</span>
+        <button type="button" class="modal-close" aria-label="关闭" title="关闭" onclick="closeGenerateModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
@@ -519,6 +549,22 @@
         </div>
         <div id="genModeHint" style="padding:12px; background:#fafafa; border-radius:4px; font-size:13px; color:var(--text-muted); margin-bottom:24px"></div>
 
+        <div class="settings-toggle-card" style="margin-bottom:14px">
+          <div><strong>上架商城</strong><small>生成后直接作为商品可售库存</small></div>
+          <input type="checkbox" class="k-checkbox" id="genListOnShop" onchange="toggleGenerateShopFields()">
+        </div>
+        <div id="genShopFields" hidden style="margin-bottom:24px">
+          <label style="display:block; margin-bottom:8px; font-size:13px">人民币售价（元）</label>
+          <input class="k-input" type="number" id="genShopPrice" value="0.00" min="0" step="0.01" inputmode="decimal">
+          <label style="display:block; margin:16px 0 8px; font-size:13px">商城商品图片</label>
+          <div class="product-image-upload">
+            <input class="k-input" type="file" id="genShopImage" accept="image/png,image/jpeg,image/webp" onchange="handleGenerateShopImage(this)">
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" id="clearGenShopImageBtn" hidden onclick="clearGenerateShopImage()">移除图片</button>
+          </div>
+          <img id="genShopImagePreview" class="product-image-preview" alt="商城商品图片预览" hidden>
+          <small class="product-image-help">支持 PNG、JPEG、WebP，最大 2 MB</small>
+        </div>
+
         <div style="display:flex; gap:12px">
           <button class="ui-btn ui-btn-primary" onclick="doGenerate()">立即生成</button>
           <button class="ui-btn ui-btn-secondary" onclick="closeGenerateModal()">取消</button>
@@ -535,10 +581,11 @@
   <script src="/static/js/api.js"></script>
   <script src="/static/js/dashboard.js"></script>
   <script src="/static/js/accounts.js"></script>
-  <script src="/static/js/cards.js"></script>
+  <script src="/static/js/cards.js?v=0.2.1-beta"></script>
   <script src="/static/js/export.js"></script>
   <script src="/static/js/logs.js"></script>
   <script src="/static/js/settings.js"></script>
+  <script src="/static/js/commerce-admin-loader.js"></script>
   <script src="/static/js/version.js"></script>
   <script src="/static/js/main.js"></script>
 </body>

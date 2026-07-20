@@ -176,7 +176,7 @@ function openAccountInfoModal(title) {
     <div class="modal-content account-info-content">
       <div class="modal-header">
         <span class="modal-title">${escapeHtml(title)}</span>
-        <span class="modal-close" onclick="closeAccountInfoModal()">&times;</span>
+        <button type="button" class="modal-close" aria-label="关闭" title="关闭" onclick="closeAccountInfoModal()">&times;</button>
       </div>
       <div class="modal-body" id="accountInfoBody">
         <div class="account-modal-loading">

@@ -1698,6 +1698,40 @@ textarea.k-input::-webkit-scrollbar-corner {
     overflow: hidden;
 }
 
+.product-image-upload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-image-upload .k-input {
+    flex: 1;
+}
+
+.product-image-preview {
+    display: block;
+    width: 240px;
+    height: 160px;
+    max-width: 100%;
+    margin-top: 12px;
+    object-fit: contain;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
+}
+
+.product-image-preview[hidden],
+.product-image-upload .ui-btn[hidden] {
+    display: none !important;
+}
+
+.product-image-help {
+    display: block;
+    margin-top: 7px;
+    color: var(--text-subtle);
+    font-size: 12px;
+}
+
 .settings-field {
     min-width: 0;
     height: 82px;
@@ -1714,6 +1748,50 @@ textarea.k-input::-webkit-scrollbar-corner {
     font-size: 12px;
     line-height: 1.35;
     overflow: hidden;
+}
+
+.payment-protocol-fields {
+    margin-top: 18px;
+}
+
+.payment-protocol-panel {
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+.payment-protocol-title {
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.payment-protocol-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 22px;
+}
+
+.payment-protocol-grid .settings-field {
+    height: auto;
+    min-height: 68px;
+}
+
+.payment-protocol-grid .payment-protocol-wide {
+    grid-column: 1 / -1;
+}
+
+.payment-protocol-grid textarea.k-input {
+    min-height: 132px;
+}
+
+@media (max-width: 700px) {
+    .payment-protocol-grid {
+        grid-template-columns: 1fr;
+    }
+    .payment-protocol-grid .payment-protocol-wide {
+        grid-column: auto;
+    }
 }
 
 .version-info-grid {
@@ -1994,20 +2072,46 @@ textarea.k-input::-webkit-scrollbar-corner {
 .modal-close {
     width: 28px;
     height: 28px;
+    flex: 0 0 28px;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    border: 0;
     border-radius: var(--radius-sm);
-    font-size: 22px;
+    background: transparent;
+    font: inherit;
+    font-size: 0;
     line-height: 1;
     color: var(--text-muted);
     cursor: pointer;
     user-select: none;
+    -webkit-appearance: none;
+    appearance: none;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
+.modal-close::before,
+.modal-close::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 1.5px;
+    border-radius: 1px;
+    background: currentColor;
+}
+.modal-close::before { transform: rotate(45deg); }
+.modal-close::after { transform: rotate(-45deg); }
 .modal-close:hover {
     background: var(--bg-hover);
     color: var(--text-main);
+}
+.modal-close:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.12);
+}
+.modal-close:active {
+    background: var(--border);
 }
 
 .modal-body {

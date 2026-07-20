@@ -2,7 +2,12 @@
 
 let cardStatusFilter = '';
 let cardKeyword = '';
+let cardSubscriptionFilter = '';
+let cardShopStatusFilter = '';
+let cardShopGroupFilter = '';
+let cardShopPriceGroups = [];
 let genSubscription = '';
+let genShopImageData = '';
 let selectedCardIds = new Set();
 
 function escapeHtml(value) {
@@ -27,6 +32,24 @@ function cardStatusBadge(status) {
   return map[status] || map.unused;
 }
 
+function formatCardPrice(amount) {
+  return '¥' + (Number(amount || 0) / 100).toFixed(2);
+}
+
+function shopRelationLabel(status) {
+  return ({ available: '可售', reserved: '已预留', sold: '已售' })[status] || status || '-';
+}
+
+function renderCardShopCell(card) {
+  if (!card.ShopProductID) return '<span class="k-badge k-badge-neutral">未上架</span>';
+  const active = !!card.ShopProductActive;
+  const badge = active ? '<span class="k-badge k-badge-success">已上架</span>' : '<span class="k-badge k-badge-neutral">已下架</span>';
+  return '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px">' + badge +
+    '<span style="font-size:12px;color:var(--text-muted);white-space:nowrap">' +
+    formatCardPrice(card.ShopPrice) + ' · #' + card.ShopProductID + ' · ' + escapeHtml(shopRelationLabel(card.ShopRelationStatus)) +
+    '</span></div>';
+}
+
 async function loadCards(page = 1) {
   cardKeyword = (document.getElementById('cardKeyword')?.value || '').trim();
   const createdFrom = document.getElementById('cardCreatedFrom')?.value || '';
@@ -36,12 +59,21 @@ async function loadCards(page = 1) {
   if (cardKeyword) url += `&keyword=${encodeURIComponent(cardKeyword)}`;
   if (createdFrom) url += `&created_from=${createdFrom}`;
   if (createdTo) url += `&created_to=${createdTo}`;
+  if (cardSubscriptionFilter) url += `&subscription=${encodeURIComponent(cardSubscriptionFilter)}`;
+  if (cardShopStatusFilter) url += `&shop_status=${encodeURIComponent(cardShopStatusFilter)}`;
+  const shopGroup = cardShopPriceGroups.find(function(row) { return row.key === cardShopGroupFilter; });
+  if (shopGroup) {
+    url += `&shop_price=${shopGroup.amount}`;
+    url += `&shop_subscription=${encodeURIComponent(shopGroup.subscription)}`;
+    url += `&shop_account_count=${shopGroup.accountCount}`;
+  }
 
   const r = await api('GET', url);
   const tbody = document.getElementById('cardsBody');
   if (!tbody) return;
-  if (r.code !== 0 || !r.data.list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">无卡密记录</td></tr>';
+  if (r.code === 0 && r.data?.filters) updateCardFilterOptions(r.data.filters);
+  if (r.code !== 0 || !r.data?.list?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">无卡密记录</td></tr>';
     updateCardBatchBtn();
     return;
   }
@@ -57,6 +89,7 @@ async function loadCards(page = 1) {
       <td data-label="序列号"><code style="background:#f1f1f1;padding:2px 4px;white-space:nowrap">${escapeHtml(c.Code)}</code></td>
       <td data-label="账号订阅" style="font-size:12px;white-space:nowrap">${escapeHtml(subscription)} ${multiLabel}</td>
       <td data-label="状态">${cardStatusBadge(status)}</td>
+      <td data-label="商城">${renderCardShopCell(c)}</td>
       <td data-label="操作">
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="ui-btn ui-btn-secondary ui-btn-sm" onclick="showCardLogs(${c.ID}, '${escapeAttr(c.Code)}')">详情</button>
@@ -76,14 +109,119 @@ async function loadCards(page = 1) {
   }
 }
 
-function selectCardFilter(value, text) {
+function clearCardSelectionForFilter() {
+  selectedCardIds.clear();
+  updateCardBatchBtn();
+  const selectAll = document.getElementById('selectAllCards');
+  if (selectAll) selectAll.checked = false;
+}
+
+function selectCardSubscription(value, text, item) {
+  cardSubscriptionFilter = value;
+  document.getElementById('cardSubscriptionText').textContent = text;
+  document.querySelectorAll('#cardSubscriptionDropdown .k-dropdown-item').forEach(function(row) { row.classList.remove('selected'); });
+  if (item) item.classList.add('selected');
+  toggleDropdown('cardSubscriptionDropdown');
+  clearCardSelectionForFilter();
+  loadCards(1);
+}
+
+function selectCardShopStatus(value, text, item) {
+  cardShopStatusFilter = value;
+  document.getElementById('cardShopStatusText').textContent = text;
+  document.querySelectorAll('#cardShopStatusDropdown .k-dropdown-item').forEach(function(row) { row.classList.remove('selected'); });
+  if (item) item.classList.add('selected');
+  toggleDropdown('cardShopStatusDropdown');
+  clearCardSelectionForFilter();
+  loadCards(1);
+}
+
+function selectCardShopGroup(value, text, item) {
+  cardShopGroupFilter = value || '';
+  document.getElementById('cardShopGroupText').textContent = text;
+  document.querySelectorAll('#cardShopGroupDropdown .k-dropdown-item').forEach(function(row) { row.classList.remove('selected'); });
+  if (item) item.classList.add('selected');
+  toggleDropdown('cardShopGroupDropdown');
+  updateDelistShopGroupButton();
+  clearCardSelectionForFilter();
+  loadCards(1);
+}
+
+function updateCardFilterOptions(filters) {
+  const subscriptions = Array.isArray(filters.subscriptions) ? filters.subscriptions : [];
+  const subscriptionMenu = document.querySelector('#cardSubscriptionDropdown .k-dropdown-menu');
+  if (subscriptionMenu) {
+    subscriptionMenu.innerHTML = '';
+    [''].concat(subscriptions).forEach(function(value) {
+      const item = document.createElement('div');
+      const text = value || '全部订阅';
+      item.className = 'k-dropdown-item' + (value === cardSubscriptionFilter ? ' selected' : '');
+      item.textContent = text;
+      item.onclick = function() { selectCardSubscription(value, text, item); };
+      subscriptionMenu.appendChild(item);
+    });
+  }
+
+  cardShopPriceGroups = Array.isArray(filters.shopPriceGroups) ? filters.shopPriceGroups : [];
+  const groupMenu = document.querySelector('#cardShopGroupDropdown .k-dropdown-menu');
+  if (groupMenu) {
+    groupMenu.innerHTML = '';
+    const allItem = document.createElement('div');
+    allItem.className = 'k-dropdown-item' + (!cardShopGroupFilter ? ' selected' : '');
+    allItem.textContent = '全部售价档位';
+    allItem.onclick = function() { selectCardShopGroup('', '全部售价档位', allItem); };
+    groupMenu.appendChild(allItem);
+    cardShopPriceGroups.forEach(function(group) {
+      const item = document.createElement('div');
+      const state = group.active ? '' : ' · 已下架';
+      const batchText = Number(group.products || 0) > 1 ? ' · ' + group.products + ' 个批次' : '';
+      const text = formatCardPrice(group.amount) + ' · ' + group.subscription + ' · ' + group.accountCount + ' 个账号 · ' + group.available + ' 可售' + batchText + state;
+      item.className = 'k-dropdown-item' + (group.key === cardShopGroupFilter ? ' selected' : '');
+      item.textContent = text;
+      item.onclick = function() { selectCardShopGroup(group.key, text, item); };
+      groupMenu.appendChild(item);
+      if (group.key === cardShopGroupFilter) document.getElementById('cardShopGroupText').textContent = text;
+    });
+  }
+  updateDelistShopGroupButton();
+}
+
+function updateDelistShopGroupButton() {
+  const button = document.getElementById('delistShopGroupBtn');
+  if (!button) return;
+  const group = cardShopPriceGroups.find(function(row) { return row.key === cardShopGroupFilter; });
+  button.style.display = group && group.active ? '' : 'none';
+}
+
+async function delistSelectedShopGroup() {
+  const group = cardShopPriceGroups.find(function(row) { return row.key === cardShopGroupFilter; });
+  if (!group) return;
+  const message = '确认下架“' + group.subscription + ' · ' + group.accountCount + ' 个账号 · ' + formatCardPrice(group.amount) + '”的全部 ' + group.products + ' 个批次，并删除 ' + group.available + ' 张未售卡密？已售卡密会保留。';
+  if (!confirm(message)) return;
+  const r = await api('POST', '/admin/cards/shop-products/delist-group', {
+    amount: Number(group.amount),
+    subscription: group.subscription,
+    account_count: Number(group.accountCount)
+  });
+  if (r.code === 0) {
+    showToast('售价档位已下架，共处理 ' + (r.data?.products || 0) + ' 个批次，删除未售卡密 ' + (r.data?.deleted || 0) + ' 张，保留已售卡密 ' + (r.data?.preservedSold || 0) + ' 张', 'success');
+    clearCardSelectionForFilter();
+    loadCards(1);
+    loadStats();
+  } else {
+    showToast('下架失败：' + (r.message || r.msg || '未知错误'), 'error');
+  }
+}
+
+function selectCardFilter(value, text, item) {
   cardStatusFilter = value;
   document.getElementById('cardFilterText').textContent = text;
   document.querySelectorAll('#cardFilterDropdown .k-dropdown-item').forEach(function(item) {
     item.classList.remove('selected');
   });
-  event.target.classList.add('selected');
+  if (item) item.classList.add('selected');
   toggleDropdown('cardFilterDropdown');
+  clearCardSelectionForFilter();
   loadCards(1);
 }
 
@@ -183,9 +321,71 @@ function closeGenerateModal() {
   document.getElementById('generateResult').innerHTML = '';
 }
 
+function toggleGenerateShopFields() {
+  const listed = document.getElementById('genListOnShop').checked;
+  document.getElementById('genShopFields').hidden = !listed;
+  if (!listed) clearGenerateShopImage();
+}
+
+function clearGenerateShopImage() {
+  genShopImageData = '';
+  const input = document.getElementById('genShopImage');
+  const preview = document.getElementById('genShopImagePreview');
+  const clearButton = document.getElementById('clearGenShopImageBtn');
+  if (input) input.value = '';
+  if (preview) {
+    preview.removeAttribute('src');
+    preview.hidden = true;
+  }
+  if (clearButton) clearButton.hidden = true;
+}
+
+function handleGenerateShopImage(input) {
+  const file = input.files && input.files[0];
+  if (!file) {
+    clearGenerateShopImage();
+    return;
+  }
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    clearGenerateShopImage();
+    showToast('商城商品图片仅支持 PNG、JPEG 或 WebP', 'error');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    clearGenerateShopImage();
+    showToast('商城商品图片不能超过 2 MB', 'error');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function() {
+    genShopImageData = String(reader.result || '');
+    const preview = document.getElementById('genShopImagePreview');
+    preview.src = genShopImageData;
+    preview.hidden = false;
+    document.getElementById('clearGenShopImageBtn').hidden = false;
+  };
+  reader.onerror = function() {
+    clearGenerateShopImage();
+    showToast('商城商品图片读取失败', 'error');
+  };
+  reader.readAsDataURL(file);
+}
+
+function yuanToCents(value) {
+  const raw = String(value == null ? '' : value).trim();
+  if (!/^\d+(?:\.\d{1,2})?$/.test(raw)) return null;
+  const parts = raw.split('.');
+  const whole = Number(parts[0]);
+  const fraction = Number(((parts[1] || '') + '00').slice(0, 2));
+  const cents = whole * 100 + fraction;
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
 async function doGenerate() {
   const count = parseInt(document.getElementById('genCount').value) || 1;
   const accountCount = getGenAccountCount(true);
+  const listOnShop = document.getElementById('genListOnShop').checked;
+  const shopPrice = yuanToCents(document.getElementById('genShopPrice').value);
   const resultEl = document.getElementById('generateResult');
   if (!genSubscription) {
     const msg = '请先选择账号订阅';
@@ -193,11 +393,18 @@ async function doGenerate() {
     showToast(msg, 'error');
     return;
   }
+  if (listOnShop && (!Number.isFinite(shopPrice) || shopPrice < 0)) {
+    showToast('请填写正确的人民币售价', 'error');
+    return;
+  }
 
   const r = await api('POST', '/admin/cards/generate', {
     count,
     account_count: accountCount,
-    subscription: genSubscription
+    subscription: genSubscription,
+    list_on_shop: listOnShop,
+    price: listOnShop ? shopPrice : 0,
+    image_data: listOnShop ? genShopImageData : ''
   });
   if (r.code === 0) {
     const codes = (r.data?.codes || []).join('\n');
@@ -229,6 +436,9 @@ async function deleteCard(id) {
 function resetCardFilters() {
   cardStatusFilter = '';
   cardKeyword = '';
+  cardSubscriptionFilter = '';
+  cardShopStatusFilter = '';
+  cardShopGroupFilter = '';
 
   var keywordInput = document.getElementById('cardKeyword');
   if (keywordInput) keywordInput.value = '';
@@ -238,10 +448,16 @@ function resetCardFilters() {
   if (ct) ct.value = '';
 
   document.getElementById('cardFilterText').textContent = '全部状态';
+  document.getElementById('cardSubscriptionText').textContent = '全部订阅';
+  document.getElementById('cardShopStatusText').textContent = '全部商城状态';
+  document.getElementById('cardShopGroupText').textContent = '全部售价档位';
   document.querySelectorAll('#cardFilterDropdown .k-dropdown-item').forEach(function(item) {
     item.classList.remove('selected');
   });
   document.querySelector('#cardFilterDropdown .k-dropdown-item:first-child')?.classList.add('selected');
+  document.querySelectorAll('#cardShopStatusDropdown .k-dropdown-item').forEach(function(item, index) { item.classList.toggle('selected', index === 0); });
+  updateDelistShopGroupButton();
+  clearCardSelectionForFilter();
   loadCards(1);
 }
 
@@ -307,7 +523,7 @@ async function showCardLogs(cardId, code) {
 
   var content = '<div class="modal-content card-log-content">';
   content += '<div class="modal-header"><span class="modal-title">卡密使用记录 - ' + escapeHtml(code) + '</span>';
-  content += '<span class="modal-close" onclick="document.getElementById(\'cardLogModal\').remove()">&times;</span></div>';
+  content += '<button type="button" class="modal-close" aria-label="关闭" title="关闭" onclick="document.getElementById(\'cardLogModal\').remove()">&times;</button></div>';
   content += '<div class="modal-body card-log-body">';
 
   if (!logs.length) {
