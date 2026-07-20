@@ -107,7 +107,7 @@ func applyStoredRuntimeSettings(s *AppSettings) {
 		return
 	}
 	var kv model.KV
-	result := database.DB.Where("key = ?", model.KVRuntimeSettings).Find(&kv)
+	result := database.WhereKVKey(database.DB, model.KVRuntimeSettings).Find(&kv)
 	if result.Error != nil || result.RowsAffected == 0 || strings.TrimSpace(kv.Value) == "" {
 		return
 	}

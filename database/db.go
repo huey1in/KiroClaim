@@ -16,6 +16,10 @@ import (
 
 var DB *gorm.DB
 
+func WhereKVKey(db *gorm.DB, key string) *gorm.DB {
+	return db.Where(&model.KV{Key: key})
+}
+
 // Init 初始化数据库连接。
 // DB_TYPE 支持 sqlite（默认）和 mysql。
 // SQLite: DB_PATH=app.db（默认）
@@ -140,7 +144,7 @@ func loadCryptoKeyFromKV() {
 		return
 	}
 	var kv model.KV
-	result := DB.Where("key = ?", model.KVEncryptionKey).Find(&kv)
+	result := WhereKVKey(DB, model.KVEncryptionKey).Find(&kv)
 	if result.Error != nil || result.RowsAffected == 0 {
 		return
 	}
@@ -155,7 +159,7 @@ func migrateEncryptedCredentials() {
 	}
 	var flag model.KV
 	const flagKey = "accounts_encrypted_v1"
-	if result := DB.Where("key = ?", flagKey).Find(&flag); result.Error == nil && result.RowsAffected > 0 {
+	if result := WhereKVKey(DB, flagKey).Find(&flag); result.Error == nil && result.RowsAffected > 0 {
 		return
 	}
 

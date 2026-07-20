@@ -131,7 +131,7 @@ func loadCommerceSettings() commerceSettings {
 		return s
 	}
 	var kv model.KV
-	if database.DB.Where("key = ?", model.KVCommerceSettings).First(&kv).Error == nil {
+	if database.WhereKVKey(database.DB, model.KVCommerceSettings).First(&kv).Error == nil {
 		raw := utils.Decrypt(kv.Value)
 		_ = json.Unmarshal([]byte(raw), &s)
 	}

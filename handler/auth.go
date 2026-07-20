@@ -85,13 +85,13 @@ func BootstrapAdminUser() {
 
 func LoadRuntimeSecrets() {
 	var jwtSecret model.KV
-	if result := database.DB.Where("key = ?", model.KVJWTSecret).Find(&jwtSecret); result.Error == nil && result.RowsAffected > 0 && strings.TrimSpace(jwtSecret.Value) != "" {
+	if result := database.WhereKVKey(database.DB, model.KVJWTSecret).Find(&jwtSecret); result.Error == nil && result.RowsAffected > 0 && strings.TrimSpace(jwtSecret.Value) != "" {
 		middleware.SetJWTSecret(jwtSecret.Value)
 		log.Println("JWT 密钥已从本地 KV 加载")
 	}
 
 	var encryptionKey model.KV
-	if result := database.DB.Where("key = ?", model.KVEncryptionKey).Find(&encryptionKey); result.Error == nil && result.RowsAffected > 0 && strings.TrimSpace(encryptionKey.Value) != "" {
+	if result := database.WhereKVKey(database.DB, model.KVEncryptionKey).Find(&encryptionKey); result.Error == nil && result.RowsAffected > 0 && strings.TrimSpace(encryptionKey.Value) != "" {
 		if err := utils.SetCryptoKey(encryptionKey.Value); err != nil {
 			log.Printf("账号凭证加密密钥加载失败: %v", err)
 		}
@@ -396,7 +396,7 @@ func ensureRuntimeSecrets() error {
 
 func ensureKVSecret(key string, size int) (string, error) {
 	var kv model.KV
-	if result := database.DB.Where("key = ?", key).Find(&kv); result.Error == nil && result.RowsAffected > 0 && strings.TrimSpace(kv.Value) != "" {
+	if result := database.WhereKVKey(database.DB, key).Find(&kv); result.Error == nil && result.RowsAffected > 0 && strings.TrimSpace(kv.Value) != "" {
 		return kv.Value, nil
 	}
 	value, err := utils.GenerateBase64Secret(size)
